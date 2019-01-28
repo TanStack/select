@@ -135,6 +135,13 @@ function MySelect({
 
 `useSelect` is built as a headless hook so as to allow you to render and style your select component however you'd like. [This codesandbox example](https://codesandbox.io/s/p5m42lr5rq) shows a simple example of using `react-window` and `styled-components` to do that.
 
+## How was use-select built?!
+
+Watch this two-part series on how I built it from the ground up using React hooks!
+
+- [Part 1](https://www.youtube.com/watch?v=zIwcBmdExq8)
+- [Part 2](https://www.youtube.com/watch?v=pGagVWf6Atc)
+
 ## Contribution and Roadmap
 
 - [ ] Improve Accessibility (Hopefully to the level of Downshift)
