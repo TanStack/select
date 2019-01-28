@@ -116,12 +116,6 @@ function MySelect({
 }
 ```
 
-# Table of Contents
-
-- [Documentation](#documentation)
-- [Contribution and Roadmap](#contribution-and-roadmap)
-- [Inspiration and Thanks](#inspiration-and-thanks)
-
 # Documentation
 
 `useSelect` accepts a few options for customization:
