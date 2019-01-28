@@ -23,7 +23,7 @@
 
 **NOTE: use-select requires React Hooks. Please verify you are using a version of React that supports them.**
 
-1. Install `use-select`
+- Install `use-select`
 
 ```sh
 yarn add use-select
@@ -31,7 +31,7 @@ yarn add use-select
 npm i -s use-select
 ```
 
-2. Import and use `use-select`
+- Import and use `use-select`
 
 ```js
 import React, { useRef } from "react";
