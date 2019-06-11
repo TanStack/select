@@ -10,128 +10,336 @@ const defaultFilterFn = (options, searchValue) => {
     })
 }
 
+function useDebounce(fn, time = 0) {
+  const ref = React.useRef(null)
+  const fnRef = React.useRef()
+
+  fnRef.current = fn
+
+  React.useEffect(() => {
+    return () => {
+      clearTimeout(ref.current)
+    }
+  }, [time])
+
+  return React.useCallback(
+    async (...args) => {
+      if (ref.current) {
+        clearTimeout(ref.current)
+      }
+      return new Promise((resolve, reject) => {
+        ref.current = setTimeout(() => {
+          ref.current = null
+          try {
+            resolve(fnRef.current(...args))
+          } catch (err) {
+            reject(err)
+          }
+        }, time)
+      })
+    },
+    [time]
+  )
+}
+
+const initialState = {
+  searchValue: '',
+  resolvedSearchValue: '',
+  isOpen: false,
+  highlightedIndex: 0
+}
+
+const actions = {
+  setOpen: 'setOpen',
+  setSearch: 'setSearch',
+  highlightIndex: 'highlightIndex'
+}
+
+function useHoistedState(initialState, reducer) {
+  const reducerRef = React.useRef()
+  reducerRef.current = reducer
+  const [state, _setState] = React.useState(initialState)
+  const setState = React.useCallback(
+    (updater, action) => {
+      if (!action) {
+        throw new Error('An action type is required to update the state')
+      }
+      return _setState(old => reducerRef.current(old, updater(old), action))
+    },
+    [_setState]
+  )
+  return [state, setState]
+}
+
 export default function useSelect({
   multi,
+  create,
+  getCreateLabel = d => `Use "${d}"`,
+  stateReducer = (old, newState, action) => newState,
+  duplicates,
   options,
   value,
   onChange,
   scrollToIndex = () => {},
   shiftAmount = 5,
   filterFn = defaultFilterFn,
-  optionsRef = React.useRef()
+  optionsRef,
+  getDebounce = options =>
+    options.length > 10000 ? 1000 : options.length > 1000 ? 200 : 0
 }) {
-  const [searchValue, setSearchValue] = React.useState('')
-  const [isOpen, setIsOpen] = React.useState(false)
-  const [highlightedIndex, _sethighlightedIndex] = React.useState(0)
+  const [
+    { searchValue, resolvedSearchValue, isOpen, highlightedIndex },
+    setState
+  ] = useHoistedState(initialState, stateReducer)
+
+  // Refs
+
   const inputRef = React.useRef()
+  const onBlurRef = React.useRef({})
+  const onChangeRef = React.useRef()
+  const filterFnRef = React.useRef()
+  const getCreateLabelRef = React.useRef()
+  const scrollToIndexRef = React.useRef()
 
-  if (!options || !Array.isArray(options)) {
-    throw new Error('useSelect requires an array of options')
+  filterFnRef.current = filterFn
+  scrollToIndexRef.current = scrollToIndex
+  getCreateLabelRef.current = getCreateLabel
+
+  onChangeRef.current = onChange
+
+  // We need to memoize these default values to keep things
+  // from rendereing without cause
+  const defaultMultiValue = React.useMemo(() => [], [])
+  const defaultOptions = React.useMemo(() => [], [])
+
+  // Multi should always at least have an empty array as the value
+  if (multi && typeof value === 'undefined') {
+    value = defaultMultiValue
   }
 
-  if (multi && !Array.isArray(value)) {
-    console.warn(
-      `useSelect's 'multi' option cannot be used without an array value!`
-    )
+  // If no options are provided, then use an empty array
+  if (!options) {
+    options = defaultOptions
   }
 
+  const originalOptions = options
+
+  // If multi and duplicates aren't allowed, filter out the
+  // selected options from the options list
+  options = React.useMemo(() => {
+    if (multi && !duplicates) {
+      return options.filter(d => !value.includes(d.value))
+    }
+    return options
+  }, [options, value, duplicates, multi])
+
+  // Compute the currently selected option(s)
   let selectedOption = React.useMemo(() => {
     if (!multi) {
-      return options.find(d => d.value === value)
+      return (
+        originalOptions.find(d => d.value === value) || {
+          label: value,
+          value: value
+        }
+      )
     } else {
-      return value.map(val => options.find(d => d.value === val))
+      return value.map(
+        val =>
+          originalOptions.find(d => d.value === val) || {
+            label: val,
+            value: val
+          }
+      )
     }
-  }, [value])
+  }, [multi, value, originalOptions])
 
-  if (multi) {
-    options = options.filter(d => !value.includes(d.value))
-  }
+  // If there is a search value, filter the options for that value
+  // TODO: This is likely where we will perform async option fetching
+  // in the future.
+  options = React.useMemo(() => {
+    if (resolvedSearchValue) {
+      return filterFnRef.current(options, resolvedSearchValue)
+    }
+    return options
+  }, [options, resolvedSearchValue])
 
-  options = searchValue ? filterFn(options, searchValue) : options
+  // If in create mode and we have a search value, fabricate
+  // an option for that searchValue and prepend it to options
+  options = React.useMemo(() => {
+    if (create && searchValue) {
+      return [
+        { label: getCreateLabelRef.current(searchValue), value: searchValue },
+        ...options
+      ]
+    }
+    return options
+  }, [create, searchValue, options])
 
-  const highlightedOption = options[highlightedIndex]
+  // Actions
 
-  useClickOutsideRef(
-    isOpen,
-    () => {
-      setIsOpen(false)
+  const setOpen = React.useCallback(
+    newIsOpen => {
+      setState(
+        old => ({
+          ...old,
+          isOpen: newIsOpen
+        }),
+        actions.setOpen
+      )
     },
-    optionsRef
+    [setState]
   )
 
-  const sethighlightedIndex = updater =>
-    _sethighlightedIndex(old =>
-      Math.min(Math.max(0, updater(old)), options.length - 1)
+  const setResolvedSearch = useDebounce(value => {
+    setState(
+      old => ({
+        ...old,
+        resolvedSearchValue: value
+      }),
+      actions.setSearch
     )
+  }, getDebounce(options))
 
-  const selectOption = option => {
-    if (!multi) {
-      onChange(option.value)
-    } else if (!value.includes(option.value)) {
-      onChange([...value, option.value], option.value)
-    }
+  const setSearch = React.useCallback(
+    value => {
+      setState(
+        old => ({
+          ...old,
+          searchValue: value
+        }),
+        actions.setSearch
+      )
+      setResolvedSearch(value)
+    },
+    [setState, setResolvedSearch]
+  )
 
-    if (!multi) {
-      setIsOpen(false)
-    } else {
-      setSearchValue('')
-    }
-  }
+  const highlightIndex = React.useCallback(
+    value => {
+      setState(old => {
+        return {
+          ...old,
+          highlightedIndex: Math.min(
+            Math.max(
+              0,
+              typeof value === 'function' ? value(old.highlightedIndex) : value
+            ),
+            options.length - 1
+          )
+        }
+      }, actions.highlightIndex)
+    },
+    [options, setState]
+  )
 
-  const removeValue = newValue => {
-    onChange(value.filter(d => d !== newValue))
-  }
+  const selectIndex = React.useCallback(
+    index => {
+      const option = options[index]
+      if (option) {
+        if (!multi) {
+          onChangeRef.current(option.value)
+        } else {
+          if (duplicates || !value.includes(option.value)) {
+            onChangeRef.current([...value, option.value], option.value)
+          }
+        }
+      }
+
+      if (!multi) {
+        setOpen(false)
+      } else {
+        setSearch('')
+      }
+    },
+    [multi, options, duplicates, value, setOpen, setSearch]
+  )
+
+  const removeValue = React.useCallback(
+    index => {
+      onChangeRef.current(value.filter((d, i) => i !== index))
+    },
+    [value]
+  )
+
+  // Handlers
 
   const handleSearchValueChange = e => {
-    setSearchValue(e.target.value)
-    setIsOpen(true)
+    setSearch(e.target.value)
+    setOpen(true)
   }
 
   const handleSearchClick = () => {
-    setSearchValue('')
-    setIsOpen(true)
+    if (!create || multi) {
+      setSearch('')
+    }
+    setOpen(true)
   }
 
   const handleSearchFocus = () => handleSearchClick()
 
-  const highlightOption = option => {
-    sethighlightedIndex(old => {
-      const index = options.indexOf(option)
-      if (index > -1) {
-        return index
+  // Prop Getters
+
+  const ArrowUp = (defaultShift, defaultMeta) => ({ shift, meta }, e) => {
+    e.preventDefault()
+    const amount =
+      defaultMeta || meta
+        ? 1000000000000
+        : defaultShift || shift
+        ? shiftAmount - 1
+        : 1
+    setOpen(true)
+    highlightIndex(old => old - amount)
+  }
+
+  const ArrowDown = (defaultShift, defaultMeta) => ({ shift, meta }, e) => {
+    e.preventDefault()
+    const amount =
+      defaultMeta || meta
+        ? 1000000000000
+        : defaultShift || shift
+        ? shiftAmount - 1
+        : 1
+    setOpen(true)
+    highlightIndex(old => old + amount)
+  }
+
+  const Enter = (_, e) => {
+    if (isOpen) {
+      if (searchValue || options[highlightedIndex]) {
+        e.preventDefault()
       }
-      return old
-    })
+      if (options[highlightedIndex]) {
+        selectIndex(highlightedIndex)
+      }
+    }
+  }
+
+  const Escape = () => {
+    setOpen(false)
+  }
+
+  const Tab = () => {
+    setOpen(false)
+  }
+
+  const Backspace = () => {
+    if (!multi || searchValue) {
+      return
+    }
+    removeValue(value.length - 1)
   }
 
   const getKeyProps = useKeys({
-    ArrowUp: ({ shift }, e) => {
-      e.preventDefault()
-      const amount = shift ? shiftAmount - 1 : 1
-      setIsOpen(true)
-      sethighlightedIndex(old => old - amount)
-    },
-    ArrowDown: ({ shift }, e) => {
-      e.preventDefault()
-      const amount = shift ? shiftAmount - 1 : 1
-      setIsOpen(true)
-      sethighlightedIndex(old => old + amount)
-    },
-    Enter: () => {
-      selectOption(highlightedOption)
-    },
-    Escape: () => {
-      setIsOpen(false)
-    },
-    Tab: () => {
-      setIsOpen(false)
-    },
-    Backspace: () => {
-      if (!multi) {
-        return
-      }
-      removeValue([...value].reverse()[0])
-    }
+    ArrowUp: ArrowUp(),
+    ArrowDown: ArrowDown(),
+    PageUp: ArrowUp(true),
+    PageDown: ArrowDown(true),
+    Home: ArrowUp(false, true),
+    End: ArrowDown(false, true),
+    Enter,
+    Escape,
+    Tab,
+    Backspace
   })
 
   const getInputProps = ({
@@ -139,7 +347,9 @@ export default function useSelect({
     ref,
     onChange,
     onFocus,
-    onClick
+    onClick,
+    onBlur,
+    ...rest
   } = {}) => {
     return getKeyProps({
       [refKey]: el => {
@@ -148,7 +358,9 @@ export default function useSelect({
           ref.current = el
         }
       },
-      value: isOpen || !selectedOption ? searchValue : selectedOption.label,
+      value:
+        (isOpen ? searchValue : selectedOption ? selectedOption.label : '') ||
+        '',
       onChange: e => {
         handleSearchValueChange(e)
         if (onChange) {
@@ -166,27 +378,42 @@ export default function useSelect({
         if (onClick) {
           onClick(e)
         }
-      }
+      },
+      onBlur: e => {
+        if (onBlur) {
+          e.persist()
+          onBlurRef.current.cb = onBlur
+          onBlurRef.current.event = e
+        }
+      },
+      ...rest
     })
   }
 
-  const getOptionProps = ({ option, onClick, onMouseEnter, ...rest } = {}) => {
-    if (!option) {
+  const getOptionProps = ({
+    index,
+    key = index,
+    onClick,
+    onMouseEnter,
+    ...rest
+  } = {}) => {
+    if (typeof index !== 'number' || index < 0) {
       throw new Error(
-        `'useSelect.getOptionProps' requires an option prop, eg. 'getOptionProps({option: currentOption})'`
+        `useSelect: The getOptionProps prop getter requires an index property, eg. 'getOptionProps({index: 1})'`
       )
     }
+
     return {
-      key: option.value,
+      key,
       ...rest,
       onClick: e => {
-        selectOption(option)
+        selectIndex(index)
         if (onClick) {
           onClick(e)
         }
       },
       onMouseEnter: e => {
-        highlightOption(option)
+        highlightIndex(index)
         if (onMouseEnter) {
           onMouseEnter(e)
         }
@@ -194,60 +421,84 @@ export default function useSelect({
     }
   }
 
+  // Effects
+
+  // When the user clicks outside of the options box
+  // while open, we need to close the dropdown
+  useClickOutsideRef(
+    isOpen,
+    () => {
+      setOpen(false)
+    },
+    optionsRef
+  )
+
   // When searching, activate the first option
   React.useEffect(() => {
-    sethighlightedIndex(() => 0)
-  }, [searchValue])
+    highlightIndex(0)
+  }, [searchValue, highlightIndex])
 
   // When we open and close the options, set the highlightedIndex to 0
   React.useEffect(() => {
-    sethighlightedIndex(() => 0)
-  }, [isOpen])
+    highlightIndex(0)
+
+    if (!isOpen && onBlurRef.current.event) {
+      onBlurRef.current.cb(onBlurRef.current.event)
+      onBlurRef.current.event = null
+    }
+  }, [isOpen, highlightIndex])
 
   // When the highlightedIndex changes, scroll to that item
   React.useEffect(() => {
-    scrollToIndex(highlightedIndex)
+    scrollToIndexRef.current(highlightedIndex)
   }, [highlightedIndex])
-
-  // When the selectedOption changes, set the search value to its value
-  React.useEffect(() => {
-    if (selectedOption) {
-      setSearchValue(selectedOption.value)
-    }
-  }, [selectedOption])
 
   React.useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus()
     }
-  })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, inputRef.current])
 
   return {
-    visibleOptions: options,
-    selectedOption,
-    highlightedOption,
-    selectOption,
-    getInputProps,
-    isOpen,
+    // State
     searchValue,
-    highlightOption,
-    getOptionProps,
-    optionsRef
+    isOpen,
+    highlightedIndex,
+    selectedOption,
+    visibleOptions: options,
+    // Actions
+    selectIndex,
+    removeValue,
+    setOpen,
+    setSearch,
+    highlightIndex,
+    // Prop Getters
+    getInputProps,
+    getOptionProps
   }
 }
 
+useSelect.actions = actions
+
 function useClickOutsideRef(enable, fn, userRef) {
   const localRef = React.useRef()
+  const fnRef = React.useRef()
+
+  fnRef.current = fn
   const elRef = userRef || localRef
 
-  const handle = e => {
-    const isTouch = e.type === 'touchstart'
-    if (e.type === 'click' && isTouch) {
-      return
-    }
-    const el = elRef.current
-    if (el && !el.contains(e.target)) fn(e)
-  }
+  const handle = React.useCallback(
+    e => {
+      const isTouch = e.type === 'touchstart'
+      if (e.type === 'click' && isTouch) {
+        return
+      }
+      const el = elRef.current
+      if (el && !el.contains(e.target)) fnRef.current(e)
+    },
+    [elRef]
+  )
 
   React.useEffect(() => {
     if (enable) {
@@ -259,24 +510,23 @@ function useClickOutsideRef(enable, fn, userRef) {
       document.removeEventListener('touchstart', handle, true)
       document.removeEventListener('click', handle, true)
     }
-  })
+  }, [enable, handle])
 }
 
 const useKeys = userKeys => {
   return ({ onKeyDown, ...rest } = {}) => {
     return {
       ...rest,
-      tabIndex: '1',
       onKeyDown: e => {
-        e.persist()
-        const { keyCode, key, shiftKey: shift } = e
+        const { keyCode, key, shiftKey: shift, metaKey: meta } = e
         const handler = userKeys[key] || userKeys[keyCode]
         if (handler) {
           handler(
             {
               keyCode,
               key,
-              shift
+              shift,
+              meta
             },
             e
           )

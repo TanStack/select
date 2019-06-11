@@ -19,6 +19,14 @@
 
 - [CodeSandbox](https://codesandbox.io/s/p5m42lr5rq)
 
+## Features
+
+- Headless
+- Multi-Select
+- Taggable
+- Extensible
+- 4kb gzipped
+
 ## Get Started
 
 **NOTE: use-select requires React Hooks. Please verify you are using a version of React that supports them.**
@@ -34,8 +42,8 @@ npm i -s use-select
 - Import and use `use-select`
 
 ```js
-import React, { useRef } from "react";
-import useSelect from "use-select";
+import React, { useRef } from 'react'
+import useSelect from 'use-select'
 
 // Create your select component
 function MySelect({
@@ -47,7 +55,7 @@ function MySelect({
   itemHeight = 40
 }) {
   // Create a ref for the options container
-  const optionsRef = useRef();
+  const optionsRef = useRef()
 
   // Use useSelect to manage select state
   const {
@@ -63,7 +71,7 @@ function MySelect({
     value,
     onChange,
     optionsRef
-  });
+  })
 
   // Build your select component
   return (
@@ -72,7 +80,7 @@ function MySelect({
         <div>
           {selectedOption.map(option => (
             <div key={option.value}>
-              {option.value}{" "}
+              {option.value}{' '}
               <span
                 onClick={() => onChange(value.filter(d => d !== option.value))}
               >
@@ -97,39 +105,69 @@ function MySelect({
                     style: {
                       background: `${props =>
                         highlightedOpion === option
-                          ? "lightblue"
+                          ? 'lightblue'
                           : selectedOption === option
-                          ? "lightgray"
-                          : "white"}`
+                          ? 'lightgray'
+                          : 'white'}`
                     }
                   })}
                 >
                   {option.label}
                 </div>
-              );
+              )
             })}
           </div>
         ) : null}
       </div>
     </div>
-  );
+  )
 }
 ```
 
 # Documentation
 
-`useSelect` accepts a few options for customization:
+## Options
 
-| Prop          | Required | Type                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ------------- | -------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| multi         |          | `Boolean`                                  | When `true`, multi-select mode is used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| options       | true     | `Array[{value, lable})`                    | An array of option objects. Each object should contain a `value` and `label` property                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| value         | true     | `any || Array[any]`                        | The current value, or array of values if using `multi` mode                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| onChange      | true     | `Function`                                 | The function that will be called with the new value(s) when the select is updated. This function will be passed a single value eg. `onChange(newValue)` when using single mode, or an array of values, with the newly added value as the second parameter eg. `onChange([...values], newValue)` when using `multi` mode                                                                                                                                                                                                                                                   |
-| scrollToIndex |          | `Function`                                 | A function that is called when the highlighted option index changes and should be scroll to. This is useful for custom windowing libraries like `react-window` or `react-virtualized`.                                                                                                                                                                                                                                                                                                                                                                                    |
-| shiftAmount   |          | `Number`                                   | The amount of options to navigate when using the keyboard to navigate with the `shift` key. Defaults to `5`                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| filterFn      |          | `Function`                                 | A custom function can be used here to filter and rank/sort the options based on the search value. It is passed the `options` array and the current `searchValue` and should return the filtered and sorted array of options to be displayed. By default a basic filter/sort function is provided. This function compares lowercase versions of the `label`s and `searchValue` using `String.contains()` and `String.indexOf()` to filter and sort the options. For a more robust ranking, we recommend using [`match-sorter`](https://github.com/kentcdodds/match-sorter) |
-| optionsRef    | true     | `React.createRef()` or `useRef()` instance | This ref is used to track outside clicks that close the options panel. Though not strictly required, it is highly recommended. You are then required to place this ref on the React element or compoenent that renders your options.                                                                                                                                                                                                                                                                                                                                      |
+`useSelect` accepts a single `object` of options. Some options are required.
+
+| Option         | Required | Type                                            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| -------------- | -------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| multi          |          | `Boolean`                                       | When `true`, multi-select mode is used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| create         |          | `Boolean`                                       | When `true`, create mode is used.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| duplicates     |          | `Boolean`                                       | When `true`, allows options with duplicate values to be selected in multi-mode                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| options        | true     | `Array[{value, lable})`                         | An array of option objects. Each object should contain a `value` and `label` property                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| value          | true     | `any || Array[any]`                             | The current value, or array of values if using `multi` mode                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| onChange       | true     | `Function(value)`                               | The function that will be called with the new value(s) when the select is updated. This function will be passed a single value eg. `onChange(newValue)` when using single mode, or an array of values, with the newly added value as the second parameter eg. `onChange([...values], newValue)` when using `multi` mode                                                                                                                                                                                                                                                   |
+| scrollToIndex  |          | `Function(optionIndex)`                         | A function that is called when the highlighted option index changes and should be scroll to. This is useful for custom windowing libraries like `react-window` or `react-virtualized`.                                                                                                                                                                                                                                                                                                                                                                                    |
+| shiftAmount    |          | `Number`                                        | The amount of options to navigate when using the keyboard to navigate with the `shift` key. Defaults to `5`                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| filterFn       |          | `Function(options, searchValue) => Options[]`   | A custom function can be used here to filter and rank/sort the options based on the search value. It is passed the `options` array and the current `searchValue` and should return the filtered and sorted array of options to be displayed. By default a basic filter/sort function is provided. This function compares lowercase versions of the `label`s and `searchValue` using `String.contains()` and `String.indexOf()` to filter and sort the options. For a more robust ranking, we recommend using [`match-sorter`](https://github.com/kentcdodds/match-sorter) |
+| getCreateLabel |          | `Function(searchValue) => String`               | A custom function can be used here to format and return the label that is used to create new values in create mode                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| optionsRef     | true     | `React.createRef()` or `useRef()` instance      | This ref is used to track outside clicks that close the options panel. Though not strictly required, it is highly recommended. You are then required to place this ref on the React element or compoenent that renders your options.                                                                                                                                                                                                                                                                                                                                      |
+| stateReducer   |          | `Function(oldState, newState, action) => state` | A function that can be used to reduce the internal state of hook. Action types are available at `useSelect.actions`                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+
+## Api
+
+`useSelect` returns an object of values and functions that you can use to build your select component:
+
+| Property          | Type                               | Description |
+| ----------------- | ---------------------------------- | ----------- |
+| _State_           |                                    |             |
+| visibleOptions    | Array<Option>                      | --          |
+| selectedOption    | Option                             | --          |
+| highlightedOption | Option                             | --          |
+| searchValue       | String                             | --          |
+| isOpen            | Bool                               | --          |
+| _Actions_         |                                    |             |
+| highlightIndex    | Function(Int)                      | --          |
+| selectOption      | Function(Option)                   | --          |
+| removeValue       | Function(Int)                      | --          |
+| setOpen           | Function(Bool)                     | --          |
+| setSearch         | Function(String)                   | --          |
+| _Prop Getters_    |                                    |             |
+| getInputProps     | Function(userProps) => inputProps  | --          |
+| getOptionProps    | Function(userProps) => optionProps | --          |
+| _Other_           |                                    |             |
+| optionsRef        | React Ref                          | --          |
 
 ## Custom Windowing and Styles
 
