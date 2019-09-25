@@ -1,5 +1,3 @@
-# use-select
-
 <!-- <a href="https://travis-ci.org/tannerlinsley/use-select" target="\_parent">
   <img alt="" src="https://travis-ci.org/tannerlinsley/use-select.svg?branch=master" />
 </a> -->
@@ -16,7 +14,7 @@
   <img alt="" src="https://img.shields.io/twitter/follow/tannerlinsley.svg?style=social&label=Follow" />
 </a>
 
-### ⚛️ A React hook for building enhanced input components
+⚛️ Hooks for building enhanced input components in React
 
 ## Demo
 
