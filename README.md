@@ -1,10 +1,13 @@
 # use-select
 
+<!-- <a href="https://travis-ci.org/tannerlinsley/use-select" target="\_parent">
+  <img alt="" src="https://travis-ci.org/tannerlinsley/use-select.svg?branch=master" />
+</a> -->
 <a href="https://npmjs.com/package/use-select" target="\_parent">
   <img alt="" src="https://img.shields.io/npm/dm/use-select.svg" />
 </a>
-<a href="https://spectrum.chat/use-select" target="\_parent">
-  <img alt="" src="https://img.shields.io/badge/spectrum-react--chat-purple.svg" />
+<a href="https://bundlephobia.com/result?p=use-select" target="\_parent">
+  <img alt="" src="https://badgen.net/bundlephobia/minzip/use-select" />
 </a>
 <a href="https://github.com/tannerlinsley/use-select" target="\_parent">
   <img alt="" src="https://img.shields.io/github/stars/tannerlinsley/use-select.svg?style=social&label=Star" />
