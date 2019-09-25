@@ -1,3 +1,7 @@
+# use-select
+
+⚛️ Hooks for building enhanced input components in React
+
 <!-- <a href="https://travis-ci.org/tannerlinsley/use-select" target="\_parent">
   <img alt="" src="https://travis-ci.org/tannerlinsley/use-select.svg?branch=master" />
 </a> -->
@@ -13,12 +17,11 @@
 <a href="https://twitter.com/tannerlinsley" target="\_parent">
   <img alt="" src="https://img.shields.io/twitter/follow/tannerlinsley.svg?style=social&label=Follow" />
 </a>
-
-⚛️ Hooks for building enhanced input components in React
-
-## Demo
-
-- [CodeSandbox](https://codesandbox.io/s/p5m42lr5rq)
+<br />
+<br />
+<a href="https://patreon.com/tannerlinsley">
+  <img width="180" alt="" src="https://raw.githubusercontent.com/tannerlinsley/files/master/images/patreon/become-a-patron.png" />
+</a>
 
 ## Features
 
@@ -27,6 +30,10 @@
 - Taggable
 - Extensible
 - 4kb gzipped
+
+## Demo
+
+- [CodeSandbox](https://codesandbox.io/s/p5m42lr5rq)
 
 ## Get Started
 
