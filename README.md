@@ -35,11 +35,7 @@
 
 - [CodeSandbox](https://codesandbox.io/s/p5m42lr5rq)
 
-## Get Started
-
-**NOTE: use-select requires React Hooks. Please verify you are using a version of React that supports them.**
-
-- Install `use-select`
+## Installation
 
 ```sh
 yarn add use-select
@@ -47,7 +43,7 @@ yarn add use-select
 npm i -s use-select
 ```
 
-- Import and use `use-select`
+## Basic Usage
 
 ```js
 import React, { useRef } from 'react'
