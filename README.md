@@ -1,10 +1,15 @@
 # use-select
 
+⚛️ Hooks for building enhanced input components in React
+
+<!-- <a href="https://travis-ci.org/tannerlinsley/use-select" target="\_parent">
+  <img alt="" src="https://travis-ci.org/tannerlinsley/use-select.svg?branch=master" />
+</a> -->
 <a href="https://npmjs.com/package/use-select" target="\_parent">
   <img alt="" src="https://img.shields.io/npm/dm/use-select.svg" />
 </a>
-<a href="https://spectrum.chat/use-select" target="\_parent">
-  <img alt="" src="https://img.shields.io/badge/spectrum-react--chat-purple.svg" />
+<a href="https://bundlephobia.com/result?p=use-select" target="\_parent">
+  <img alt="" src="https://badgen.net/bundlephobia/minzip/use-select" />
 </a>
 <a href="https://github.com/tannerlinsley/use-select" target="\_parent">
   <img alt="" src="https://img.shields.io/github/stars/tannerlinsley/use-select.svg?style=social&label=Star" />
@@ -12,12 +17,11 @@
 <a href="https://twitter.com/tannerlinsley" target="\_parent">
   <img alt="" src="https://img.shields.io/twitter/follow/tannerlinsley.svg?style=social&label=Follow" />
 </a>
-
-### ⚛️ A React hook for building enhanced input components
-
-## Demo
-
-- [CodeSandbox](https://codesandbox.io/s/p5m42lr5rq)
+<br />
+<br />
+<a href="https://patreon.com/tannerlinsley">
+  <img width="180" alt="" src="https://raw.githubusercontent.com/tannerlinsley/files/master/images/patreon/become-a-patron.png" />
+</a>
 
 ## Features
 
@@ -27,11 +31,11 @@
 - Extensible
 - 4kb gzipped
 
-## Get Started
+## Demo
 
-**NOTE: use-select requires React Hooks. Please verify you are using a version of React that supports them.**
+- [CodeSandbox](https://codesandbox.io/s/p5m42lr5rq)
 
-- Install `use-select`
+## Installation
 
 ```sh
 yarn add use-select
@@ -39,7 +43,7 @@ yarn add use-select
 npm i -s use-select
 ```
 
-- Import and use `use-select`
+## Basic Usage
 
 ```js
 import React, { useRef } from 'react'
