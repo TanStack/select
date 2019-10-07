@@ -455,7 +455,9 @@ export default function useSelect({
 
   React.useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus()
+      setTimeout(() => {
+        inputRef.current.focus()
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, inputRef.current])
