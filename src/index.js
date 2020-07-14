@@ -108,7 +108,7 @@ export default function useSelect({
   onChangeRef.current = onChange
 
   // We need to memoize these default values to keep things
-  // from rendereing without cause
+  // from rendering without cause
   const defaultMultiValue = React.useMemo(() => [], [])
   const defaultOptions = React.useMemo(() => [], [])
 
