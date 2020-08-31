@@ -108,7 +108,7 @@ function MySelect({
                     option,
                     style: {
                       background: `${props =>
-                        highlightedOpion === option
+                        highlightedOption === option
                           ? 'lightblue'
                           : selectedOption === option
                           ? 'lightgray'
