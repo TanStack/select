@@ -71,7 +71,7 @@
     "size-limit": "^11.2.0",
     "typescript": "5.8.3",
     "vite": "^6.3.3",
-    "vitest": "^3.1.2"
+    "vitest": "^4.0.0"
   },
   "overrides": {
     "@tanstack/select": "workspace:*",
